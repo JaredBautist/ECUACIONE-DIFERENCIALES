@@ -44,8 +44,9 @@ def preprocess_equation(eq_str: str) -> str:
     # Reemplazar notaciones comunes
     eq_str = eq_str.replace(' ', '')
     eq_str = eq_str.replace("dy/dx", "Derivative(y(x),x)")
-    eq_str = eq_str.replace("y'", "Derivative(y(x),x)")
+    # Importante: reemplazar primero y'' y luego y' para evitar coincidencias parciales
     eq_str = eq_str.replace("y''", "Derivative(y(x),x,2)")
+    eq_str = eq_str.replace("y'", "Derivative(y(x),x)")
     
     # Reemplazar y por y(x), pero no si ya está como y(x)
     eq_str = re.sub(r'\by\b(?!\()', 'y(x)', eq_str)
@@ -54,6 +55,18 @@ def preprocess_equation(eq_str: str) -> str:
     eq_str = eq_str.replace('e^', 'exp')
     eq_str = eq_str.replace('ln', 'log')
     eq_str = eq_str.replace('sqrt', 'sqrt')
+    # Soportar operador de potencia con caret: convertir ^ a ** para SymPy
+    eq_str = eq_str.replace('^', '**')
+
+    # Nuevo: Manejar ecuaciones exactas en formato M dx + N dy = 0
+    # Patrón para M dx + N dy = 0
+    match = re.match(r'^(?P<M>.*?)\s*dx\s*\+\s*(?P<N>.*?)\s*dy\s*=\s*0$', eq_str, re.IGNORECASE)
+    if match:
+        M = match.group('M')
+        N = match.group('N')
+        # Asegurarse de que M y N son expresiones parseables.
+        # Envolviendo M y N en paréntesis para asegurar el orden de las operaciones.
+        return f"Derivative(y(x),x) = -({M})/({N})"
     
     return eq_str
 
