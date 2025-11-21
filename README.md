@@ -95,6 +95,7 @@ npm run dev
    - Derivadas: `dy/dx`, `y'`, `y''`
    - Potencias: `x^2`, `y^3`
    - Funciones: `sin(x)`, `cos(x)`, `exp(x)`, `ln(x)`, `sqrt(x)`
+   - Usa los botones rápidos para insertar derivadas, raíces o plantillas de condiciones iniciales
 3. **Haz clic en "Resolver Ecuación"** o presiona Enter
 4. **Explora los resultados**:
    - Pestaña "Resultado Final": Muestra la solución completa
@@ -124,6 +125,18 @@ y'' - y = 0
 dy/dx = x^2 + y^2
 dy/dx = sqrt(x)*y
 dy/dx = exp(x)*sin(y)
+\`\`\`
+
+### Potencias y multiplicación implícita
+\`\`\`
+dy/dx = sin^2(x) + y        # sin^2(x) o sin(x)^2 funcionan
+dy/dx = x(y+1)              # se interpreta como x*(y+1)
+\`\`\`
+
+### Condiciones iniciales
+Separa la ecuación de las condiciones con `;` o salto de línea.
+\`\`\`
+dy/dx = x*y; y(0) = 2; y'(0) = 1
 \`\`\`
 
 ### Ecuaciones Exactas

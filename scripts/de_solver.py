@@ -3,13 +3,59 @@ Solucionador de Ecuaciones Diferenciales usando SymPy
 Este script proporciona funciones para resolver diferentes tipos de ecuaciones diferenciales
 """
 
-from sympy import symbols, Function, dsolve, Eq, Derivative, simplify, latex
-from sympy.parsing.sympy_parser import parse_expr
 import json
+import re
+from sympy import (
+    Derivative,
+    Eq,
+    Function,
+    acos,
+    asin,
+    atan,
+    cos,
+    cosh,
+    csc,
+    dsolve,
+    exp,
+    latex,
+    log,
+    sec,
+    sin,
+    sinh,
+    sqrt,
+    symbols,
+    tan,
+    tanh,
+)
+from sympy.parsing.sympy_parser import (
+    implicit_multiplication_application,
+    parse_expr,
+    standard_transformations,
+)
 
 # Definir símbolos
 x, C1, C2, C3 = symbols('x C1 C2 C3')
 y = Function('y')
+TRANSFORMATIONS = standard_transformations + (implicit_multiplication_application,)
+ALLOWED_LOCAL_DICT = {
+    'x': x,
+    'y': y,
+    'Derivative': Derivative,
+    'sin': sin,
+    'cos': cos,
+    'tan': tan,
+    'exp': exp,
+    'log': log,
+    'sqrt': sqrt,
+    'asin': asin,
+    'acos': acos,
+    'atan': atan,
+    'sec': sec,
+    'csc': csc,
+    'sinh': sinh,
+    'cosh': cosh,
+    'tanh': tanh,
+}
 
 
 def parse_equation(equation_str: str):
@@ -24,20 +70,33 @@ def parse_equation(equation_str: str):
     """
     # Reemplazar notación común
     equation_str = equation_str.replace('dy/dx', 'Derivative(y(x), x)')
-    equation_str = equation_str.replace("y'", 'Derivative(y(x), x)')
     equation_str = equation_str.replace("y''", 'Derivative(y(x), x, 2)')
-    equation_str = equation_str.replace('y', 'y(x)')
+    equation_str = equation_str.replace("y'", 'Derivative(y(x), x)')
+    equation_str = re.sub(r'\by\b(?!\()', 'y(x)', equation_str)
     equation_str = equation_str.replace('e^', 'exp')
     equation_str = equation_str.replace('ln', 'log')
+    equation_str = equation_str.replace('^', '**')
     
     # Dividir por el signo igual
     if '=' in equation_str:
         left, right = equation_str.split('=')
-        left_expr = parse_expr(left.strip())
-        right_expr = parse_expr(right.strip())
+        left_expr = parse_expr(
+            left.strip(),
+            transformations=TRANSFORMATIONS,
+            local_dict=ALLOWED_LOCAL_DICT,
+        )
+        right_expr = parse_expr(
+            right.strip(),
+            transformations=TRANSFORMATIONS,
+            local_dict=ALLOWED_LOCAL_DICT,
+        )
         return Eq(left_expr, right_expr)
     else:
-        return parse_expr(equation_str)
+        return parse_expr(
+            equation_str,
+            transformations=TRANSFORMATIONS,
+            local_dict=ALLOWED_LOCAL_DICT,
+        )
 
 
 def solve_separable(equation_str: str):

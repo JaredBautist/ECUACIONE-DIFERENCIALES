@@ -30,6 +30,14 @@ export default function DifferentialEquationSolver() {
   const [equationType, setEquationType] = useState('separable')
   const [solution, setSolution] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const quickTokens = [
+    { label: "y'", value: "y'" },
+    { label: "y''", value: "y''" },
+    { label: '√', value: 'sqrt()' },
+    { label: 'dy/dx', value: 'dy/dx = ' },
+    { label: 'IC y(0)=1', value: '; y(0)=1' },
+    { label: "IC y'(0)=0", value: "; y'(0)=0" },
+  ]
 
   const handleSolve = async () => {
     if (!equation.trim()) return
@@ -48,6 +56,10 @@ export default function DifferentialEquationSolver() {
   const handleExerciseSelect = (selectedEquation: string, selectedType: string) => {
     setEquation(selectedEquation)
     setEquationType(selectedType)
+  }
+
+  const appendToken = (token: string) => {
+    setEquation((prev) => (prev.trim() ? `${prev} ${token}` : token))
   }
 
   return (
@@ -101,6 +113,19 @@ export default function DifferentialEquationSolver() {
 
                 <div className="space-y-2">
                   <Label htmlFor="equation">Ecuación Diferencial</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {quickTokens.map((token) => (
+                      <Button
+                        key={token.label}
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => appendToken(token.value)}
+                      >
+                        {token.label}
+                      </Button>
+                    ))}
+                  </div>
                   <Input
                     id="equation"
                     placeholder="ej: dy/dx = x*y"
@@ -114,7 +139,7 @@ export default function DifferentialEquationSolver() {
                     }}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Usa notación estándar: dy/dx, y', x^2, sqrt(x), etc.
+                    Usa notación estándar: dy/dx, y', x^2, sqrt(x); separa condiciones iniciales con ';' o enter, ej: dy/dx = x*y; y(0)=2; y'(0)=1
                   </p>
                 </div>
 
@@ -149,31 +174,42 @@ export default function DifferentialEquationSolver() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="solution" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="solution">Resultado Final</TabsTrigger>
-                      <TabsTrigger value="steps">Paso a Paso</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="solution" className="mt-6">
-                      <div className="space-y-4">
-                        <div className="p-6 rounded-lg bg-muted/50 border-2 border-primary/20">
-                          <p className="text-sm font-semibold text-muted-foreground mb-2">
-                            Ecuación Original:
-                          </p>
-                          <MathDisplay latex={solution.originalEquation} />
-                        </div>
-                        <div className="p-6 rounded-lg bg-primary/10 border-2 border-primary">
-                          <p className="text-sm font-semibold text-primary mb-2">
-                            Solución General:
-                          </p>
-                          <MathDisplay latex={solution.solution} displayMode />
-                        </div>
-                      </div>
-                    </TabsContent>
-                    <TabsContent value="steps" className="mt-6">
-                      <SolutionSteps steps={solution.steps} />
-                    </TabsContent>
-                  </Tabs>
+                  {(() => {
+                    const raw = solution?.solution
+                    const normalizedSolution =
+                      typeof raw === 'string'
+                        ? raw
+                        : Array.isArray(raw)
+                          ? raw.join(' \\quad ')
+                          : String(raw ?? '')
+                    return (
+                      <Tabs defaultValue="solution" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="solution">Resultado Final</TabsTrigger>
+                          <TabsTrigger value="steps">Paso a Paso</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="solution" className="mt-6">
+                          <div className="space-y-4">
+                            <div className="p-6 rounded-lg bg-muted/50 border-2 border-primary/20">
+                              <p className="text-sm font-semibold text-muted-foreground mb-2">
+                                Ecuación Original:
+                              </p>
+                              <MathDisplay latex={solution.originalEquation} />
+                            </div>
+                            <div className="p-6 rounded-lg bg-primary/10 border-2 border-primary">
+                              <p className="text-sm font-semibold text-primary mb-2">
+                                Solución General:
+                              </p>
+                              <MathDisplay latex={normalizedSolution} displayMode />
+                            </div>
+                          </div>
+                        </TabsContent>
+                        <TabsContent value="steps" className="mt-6">
+                          <SolutionSteps steps={solution.steps} />
+                        </TabsContent>
+                      </Tabs>
+                    )
+                  })()}
                 </CardContent>
               </Card>
             )}
