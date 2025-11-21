@@ -106,6 +106,29 @@ Crea un archivo `.env` en la raíz del proyecto:
 PYTHON_BACKEND_URL=http://localhost:8000
 \`\`\`
 
+## Notas de Sintaxis
+
+- El parser acepta potencias sobre funciones: `sin^2(x)` se interpreta como `sin(x)^2`
+- Se permite multiplicación implícita: escribir `x(y+1)` se procesa como `x*(y+1)`
+- Funciones soportadas: `sin`, `cos`, `tan`, `exp`, `log`, `sqrt`, `asin`, `acos`, `atan`, `sec`, `csc`, `cot`, `sinh`, `cosh`, `tanh`, además de las constantes `pi` y `E`
+- Soporte de condiciones iniciales: agrega `;` o salto de línea después de la ecuación, ej: `dy/dx = x*y; y(0)=2; y'(0)=1`
+
+## Endpoints principales
+
+- `POST /solve`
+  - Campos: `equation`, `equation_type?`, `method` (`symbolic`, `numeric:euler`, `numeric:rk4`), `initial_conditions? {x0,y0,y1?,y2?}`, `with_qwen?`
+- `POST /solve/system`
+  - Campos: `equations: []`, `variables?`, `method` (`numeric:euler` | `numeric:rk4`), `initial_conditions` (con `system: []`), `with_qwen?`
+- `POST /validate`
+  - Campos: `equation`, `proposed_solution` (usa Qwen si hay API key)
+
+## Capacidades del backend
+
+- Solver simbólico (SymPy) con CI: EDO 1er/2º orden, lineales, no lineales, separables, exactas, homogéneas, Bernoulli.
+- Sistemas (simbólico si SymPy puede; numérico con Euler/RK4).
+- Métodos numéricos: Euler y Runge-Kutta 4 (escalares y sistemas).
+- Integración opcional con Qwen para validar o enriquecer soluciones.
+
 ## Notas de Desarrollo
 
 - El backend usa SymPy para resolución simbólica exacta
